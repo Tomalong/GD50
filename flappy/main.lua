@@ -38,6 +38,7 @@ require 'states/CountdownState'
 require 'states/PlayState'
 require 'states/ScoreState'
 require 'states/TitleScreenState'
+require 'states/PauseState'
 
 require 'Bird'
 require 'Pipe'
@@ -85,6 +86,8 @@ function love.load()
         ['explosion'] = love.audio.newSource('explosion.wav', 'static'),
         ['hurt'] = love.audio.newSource('hurt.wav', 'static'),
         ['score'] = love.audio.newSource('score.wav', 'static'),
+        ['pause'] = love.audio.newSource('pause.mp3', 'static'),
+
 
         -- https://freesound.org/people/xsgianni/sounds/388079/
         ['music'] = love.audio.newSource('marios_way.mp3', 'static')
@@ -106,6 +109,7 @@ function love.load()
         ['title'] = function() return TitleScreenState() end,
         ['countdown'] = function() return CountdownState() end,
         ['play'] = function() return PlayState() end,
+        ['pause'] = function() return PauseState() end,
         ['score'] = function() return ScoreState() end
     }
     gStateMachine:change('title')
@@ -155,8 +159,16 @@ end
 
 function love.update(dt)
     -- scroll our background and ground, looping back to 0 after a certain amount
-    backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
-    groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt) % VIRTUAL_WIDTH
+
+    dtProxy = dt
+
+    if scrolling == false then 
+        dtProxy = 0
+    end
+
+
+    backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dtProxy) % BACKGROUND_LOOPING_POINT
+    groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dtProxy) % VIRTUAL_WIDTH
 
     gStateMachine:update(dt)
 
@@ -166,7 +178,6 @@ end
 
 function love.draw()
     push:start()
-
     love.graphics.draw(background, -backgroundScroll, 0)
     gStateMachine:render()
     love.graphics.draw(ground, -groundScroll, VIRTUAL_HEIGHT - 16)

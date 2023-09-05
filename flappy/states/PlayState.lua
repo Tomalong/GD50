@@ -12,10 +12,12 @@ PlayState = Class{__includes = BaseState}
 
 PIPE_SPEED = 60
 PIPE_WIDTH = 70
-PIPE_HEIGHT = 288
+PIPE_HEIGHT = 270
 
 BIRD_WIDTH = 38
 BIRD_HEIGHT = 24
+
+pipeSpawnInterval = 2
 
 function PlayState:init()
     self.bird = Bird()
@@ -29,10 +31,10 @@ end
 
 function PlayState:update(dt)
     -- update timer for pipe spawning
-    self.timer = self.timer + dt
+    self.timer = self.timer + dt    
 
     -- spawn a new pipe pair every second and a half
-    if self.timer > 2 then
+    if self.timer > pipeSpawnInterval then
         -- modify the last Y coordinate we placed so pipe gaps aren't too far apart
         -- no higher than 10 pixels below the top edge of the screen,
         -- and no lower than a gap length (90 pixels) from the bottom
@@ -45,6 +47,9 @@ function PlayState:update(dt)
 
         -- reset timer
         self.timer = 0
+
+        -- randomize pipe interval
+        pipeSpawnInterval = math.random(1.5,3)
     end
 
     -- for every pair of pipes..
@@ -99,6 +104,14 @@ function PlayState:update(dt)
             score = self.score
         })
     end
+
+    if love.keyboard.wasPressed('p') then
+        gStateMachine:change('pause', {
+            pipePairs = self.pipePairs,
+            bird = self.bird,
+            score = self.score
+        })
+    end
 end
 
 function PlayState:render()
@@ -115,9 +128,15 @@ end
 --[[
     Called when this state is transitioned to from another state.
 ]]
-function PlayState:enter()
+function PlayState:enter(params)
     -- if we're coming from death, restart scrolling
     scrolling = true
+    if params ~= nil then
+        self.pipePairs = params.pipePairs
+        self.bird = params.bird
+        self.score = params.score
+    end
+
 end
 
 --[[
